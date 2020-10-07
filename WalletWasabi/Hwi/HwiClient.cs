@@ -125,6 +125,24 @@ namespace WalletWasabi.Hwi
 				cancel).ConfigureAwait(false);
 		}
 
+		public async Task<IEnumerable<HwiEnumerateEntry>> SendPassAsync(HardwareWalletModels deviceType, string devicePath, string passphrase, CancellationToken cancel)
+			=> await SendPassImplAsync(deviceType, devicePath, null, passphrase, cancel);
+
+		public async Task<IEnumerable<HwiEnumerateEntry>> SendPassAsync(HDFingerprint fingerprint, string passphrase, CancellationToken cancel)
+			=> await SendPassImplAsync(null, null, fingerprint, passphrase, cancel);
+
+		private async Task<IEnumerable<HwiEnumerateEntry>> SendPassImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, string passphrase, CancellationToken cancel)
+		{
+			var responseString = await SendCommandAsync(
+				options: BuildOptions(deviceType, devicePath, fingerprint, HwiOption.Password(passphrase)),
+				command: HwiCommands.Enumerate,
+				commandArguments: null,
+				openConsole: false,
+				cancel).ConfigureAwait(false);
+			IEnumerable<HwiEnumerateEntry> response = HwiParser.ParseHwiEnumerateResponse(responseString);
+			return response;
+		}
+
 		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletModels deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
 			=> await GetXpubImplAsync(deviceType, devicePath, null, keyPath, cancel);
 

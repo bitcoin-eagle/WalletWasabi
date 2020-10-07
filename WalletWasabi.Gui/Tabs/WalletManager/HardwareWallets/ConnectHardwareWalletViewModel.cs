@@ -305,6 +305,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						return null;
 					}
 				}
+				if (SelectedWallet.HardwareWalletInfo.NeedsPassphraseSent is true)
+				{
+					using var cts2 = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+					var p = selectedWallet.HardwareWalletInfo.Path;
+					var t = selectedWallet.HardwareWalletInfo.Model;
+					var response = await client.SendPassAsync(t, p, "pass", cts2.Token);
+					var index = Wallets.TakeWhile(x => x.HardwareWalletInfo.Model != t || x.HardwareWalletInfo.Path != p).Count();
+					var hwi = response.FirstOrDefault(x => x.Model == t && x.Path == p);
+					Wallets[index] = new HardwareWalletViewModel(hwi);
+					selectedWallet = Wallets[index];
+				}
 
 				ExtPubKey extPubKey;
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
