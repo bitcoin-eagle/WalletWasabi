@@ -204,6 +204,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			{
 				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
 				// If pin is needed, then make the button say Send Pin instead.
+				// If passphrase is needed, then make the button say Send Passphrase instead.
 
 				if (SelectedWallet?.HardwareWalletInfo is { })
 				{
@@ -211,10 +212,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					{
 						text = "Setup Wallet";
 					}
-
-					if (SelectedWallet.HardwareWalletInfo.NeedsPinSent is true)
+					else if (SelectedWallet.HardwareWalletInfo.NeedsPinSent is true)
 					{
 						text = "Send PIN";
+					}
+					else if (SelectedWallet.HardwareWalletInfo.NeedsPassphraseSent is true)
+					{
+						text = "Send Passphrase";
 					}
 				}
 			}
@@ -305,12 +309,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						return null;
 					}
 				}
-				if (SelectedWallet.HardwareWalletInfo.NeedsPassphraseSent is true)
+				else if (SelectedWallet.HardwareWalletInfo.NeedsPassphraseSent is true)
 				{
 					using var cts2 = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 					var p = selectedWallet.HardwareWalletInfo.Path;
 					var t = selectedWallet.HardwareWalletInfo.Model;
-					var response = await client.SendPassAsync(t, p, "pass", cts2.Token);
+					var response = await client.SendPassAsync(t, p, "pass2", cts2.Token);
 					var index = Wallets.TakeWhile(x => x.HardwareWalletInfo.Model != t || x.HardwareWalletInfo.Path != p).Count();
 					var hwi = response.FirstOrDefault(x => x.Model == t && x.Path == p);
 					Wallets[index] = new HardwareWalletViewModel(hwi);
